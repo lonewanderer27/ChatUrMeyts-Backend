@@ -21,7 +21,7 @@ async def get_student_recommendations(profile_id: str):
     if not profile.data:
         raise HTTPException(status_code=404, detail="Profile not found")
 
-    pprint(profile, indent=4)
+    # pprint(profile, indent=4)
 
     # anyway, we try to query the table of students, and their classes and subjects
     student = (supabase
@@ -31,7 +31,7 @@ async def get_student_recommendations(profile_id: str):
                 .single()
                 .execute())
 
-    pprint(student, indent=4)
+    # pprint(student, indent=4)
 
     if not student.data:
         raise HTTPException(status_code=404, detail="Student not found")
@@ -40,13 +40,13 @@ async def get_student_recommendations(profile_id: str):
     # query the table of students
     students = (supabase
                     .table("students")
-                    .select("*, profile:profiles!students_profile_id_fkey(*)")
+                    .select("*, profile:profiles!students_profile_id_fkey(*), course:courses(*)")
                     .neq("profile_id", profile_id)
                     .eq("verified", True)
                     .order("full_name")
                     .execute())
 
-    pprint(students, indent=4)
+    # pprint(students, indent=4)
 
     # TODO: implement the CBF algorithm
 
