@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.routers.hello import router as hello_router
+from src.routers.groups import router as groups_router
+from src.routers.students import router as students_router
 import os
 import uvicorn
 
@@ -19,6 +21,8 @@ chaturmates.add_middleware(
 )
 
 chaturmates.include_router(hello_router)
+chaturmates.include_router(groups_router)
+chaturmates.include_router(students_router)
 
 
 @chaturmates.get("/")

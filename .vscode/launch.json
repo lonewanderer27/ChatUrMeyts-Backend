@@ -1,0 +1,20 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run API",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["src.main:chaturmates", "--reload"],
+      "console": "integratedTerminal",
+      "env": {
+        "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnanNsYWxqa2VrdWFnZ2RleWNkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY5MzM2MDY0NiwiZXhwIjoyMDA4OTM2NjQ2fQ.n8Oul2x4DYRLIa3sHLu-32yW2y8VXBfRAddIg_pPvYc",
+        "SUPABASE_URL": "https://xgjslaljkekuaggdeycd.supabase.co", 
+      }
+    }
+  ]
+}
