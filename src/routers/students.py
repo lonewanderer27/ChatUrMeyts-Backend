@@ -1,11 +1,13 @@
 from fastapi import APIRouter, HTTPException
-from ..supabase import supabase
+from pydantic import BaseModel
+from typing import List, Dict, Any
+from src.supabase import supabase
 from pprint import pprint
 
-router = APIRouter(
-    prefix="/students",
-    tags=["Hello"],
-)
+class StudentsResponse(BaseModel):
+    students: List[Dict[str, Any]]
+
+router = APIRouter(prefix="/students")
 
 @router.get("/pid/{profile_id}", description="Get student recommendations")
 async def get_student_recommendations(profile_id: str):
@@ -48,9 +50,6 @@ async def get_student_recommendations(profile_id: str):
 
     # pprint(students, indent=4)
 
-    # TODO: implement the CBF algorithm
-
-    # anyway let's do a basic recommendation for now
     # each student has these crucial infos: academic_year_id, year_level, avatar_url, student_no, course
     # the ranking will be based on the similarity of the academic_year_id, year_level, and course
     # to the student we're requesting this recommendation for     
@@ -89,6 +88,4 @@ async def get_student_recommendations(profile_id: str):
     # Extract the student data from the recommendations
     recommendations = [recommendation['student'] for recommendation in recommendations]
     
-    return {
-        "students": recommendations,
-    }
+    return StudentsResponse(students=recommendations)
