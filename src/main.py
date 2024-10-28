@@ -12,9 +12,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 chaturmates = FastAPI(
-    title="Chaturmates API",
-    description="API for Chaturmates",
-    version="0.1.0"
+    title="Chat-Ur-Meyts API",
+    description="API for Chat-Ur-Meyts",
+    version="1.0"
 )
 
 chaturmates.add_middleware(
