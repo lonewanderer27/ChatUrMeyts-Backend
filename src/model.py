@@ -20,8 +20,11 @@ class GroupRecommender:
         self.top_k_groups = 10 # Default Top K groups
         # Initialize placeholders
         self.group_chats = None
+        self.group_chats_data = None
         self.group_members = None
+        self.group_members_data = None
         self.students = None
+        self.students_data = None
         self.interaction_matrix = None
         self.tfidf_matrix = None
         self.tfidf_similarity = None
@@ -34,19 +37,19 @@ class GroupRecommender:
     def load_data(self):
         # Fetch data using RPC functions
         logger.info("Fetching group metadata...")
-        group_chats_data = get_group_metadata()
+        self.group_chats_data = get_group_metadata()
         
         logger.info("Fetching group members...")
-        group_members_data = get_group_members()
+        self.group_members_data = get_group_members()
         
         logger.info("Fetching student profiles...")
-        students_data = get_all_student_profiles()
+        self.students_data = get_all_student_profiles()
 
         # Convert to DataFrames
         logger.info("Converting data to DataFrames...")
-        self.group_chats = pd.DataFrame(group_chats_data)
-        self.group_members = pd.DataFrame(group_members_data)
-        self.students = pd.DataFrame(students_data)
+        self.group_chats = pd.DataFrame(self.group_chats_data)
+        self.group_members = pd.DataFrame(self.group_members_data)
+        self.students = pd.DataFrame(self.students_data)
 
         # Handle missing values
         logger.info("Handling missing values...")
@@ -170,6 +173,30 @@ class GroupRecommender:
         self.compute_similarities()
         self.knn_model()
         logger.info("GroupRecommender initialized successfully.")
+
+    def get_group_chats_by_ids(self, group_ids):
+        """
+        Fetch raw group chat data for the given group IDs.
+        :param group_ids: List of group IDs to fetch chats for.
+        :return: List of raw group chat data dictionaries.
+        """
+        logger.info(f"Fetching group chat data for group IDs: {group_ids}")
+
+        if not isinstance(group_ids, list):
+            raise ValueError("group_ids must be a list of integers.")
+
+        # Filter group chats based on the provided group IDs
+        filtered_chats = self.group_chats[self.group_chats['group_id'].isin(group_ids)]
+
+        if filtered_chats.empty:
+            logger.info(f"No chat data found for the provided group IDs: {group_ids}")
+            return []
+
+        # Convert DataFrame rows to dictionaries
+        raw_chat_data = filtered_chats.to_dict(orient='records')
+
+        logger.info(f"Fetched {len(raw_chat_data)} group chat records.")
+        return raw_chat_data
 
     def recommend_groups_for_student(self, student_id, top_k = None):
         logger.info(f"student_id: {student_id}")

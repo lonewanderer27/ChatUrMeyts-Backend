@@ -2,7 +2,7 @@ import os
 from fastapi import APIRouter, HTTPException, Query
 from ..supabase import supabase
 from pprint import pprint
-from typing import List
+from typing import List, Any
 from pydantic import BaseModel
 from ..model import GroupRecommender
 import logging
@@ -16,9 +16,17 @@ recommender = None  # Global variable
 
 router = APIRouter(prefix="/groups")
 
+class Group(BaseModel):
+    group_id: int
+    group_name: str
+    group_subjects: List[str] = []
+    year_level: List[int]
+    block: str
+
 class GroupIDsResponse(BaseModel):
     student_id: int
     group_ids: List[int] = []
+    groups: List[Group] = []
 
 @router.on_event("startup")
 async def startup_event():
@@ -47,8 +55,10 @@ async def get_group_recommendations_for_student(
         recommendations = recommender.recommend_groups_for_student(student_id, top_k)
         if not recommendations or len(recommendations) == 0:
             raise HTTPException(status_code=404, detail="No recommendations found.")
+        # Find the raw group data from the database
+        raw_groups = recommender.get_group_chats_by_ids(recommendations)
         
-        return GroupIDsResponse(student_id=student_id, group_ids=recommendations)
+        return GroupIDsResponse(student_id=student_id, group_ids=recommendations, groups=raw_groups)
     except Exception as e:
         logger.error(f"Error during recommendation: {e}")
         raise HTTPException(status_code=500, detail=str(e))
