@@ -1,89 +1,64 @@
-from fastapi import APIRouter
+import os
+from fastapi import APIRouter, HTTPException, Query
 from ..supabase import supabase
 from pprint import pprint
+from typing import List, Any
+from pydantic import BaseModel
+from ..model import GroupRecommender
+import logging
 
-router = APIRouter(
-    prefix="/groups",
-    tags=["Hello"],
-)
+# Configure Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
+# Initialize the global recommender to None
+recommender = None  # Global variable
 
-@router.get("/pid/{profile_id}", description="Get group recommendations")
-async def get_group_recommendations(profile_id: str):
-    # fetch the profile of the user
-    profile = (supabase
-               .table("profiles")
-               .select("*, student:students!students_profile_id_fkey(*)")
-               .eq("id", profile_id)
-               .single()
-               .execute())
+router = APIRouter(prefix="/groups")
 
-    # if profile is empty, return appropriate fastapi 404 error
-    if not profile.data:
-        raise HTTPException(status_code=404, detail="Profile not found")
+class Group(BaseModel):
+    group_id: int
+    group_name: str
+    group_subjects: List[str] = []
+    year_level: List[int]
+    block: str
 
-    # pprint(profile, indent=4)
+class GroupIDsResponse(BaseModel):
+    student_id: int
+    group_ids: List[int] = []
+    groups: List[Group] = []
 
-    # anyway, we try to query the table of students, and their classes and subjects
-    student = (supabase
-                .table("students")
-                .select("*, classes!classes_student_id_fkey(*, subjects(*))")
-                .eq("profile_id", profile_id)
-                .single()
-                .execute())
+@router.on_event("startup")
+async def startup_event():
+    global recommender  # Use the global keyword to modify the global variable
+    logger.info("Initializing the Group Recommender Model...")
+    
+    try:
+        # Assign a new instance to the global variable
+        recommender = GroupRecommender()
+        recommender.initialize()
+        logger.info("Model initialized successfully.")
+    except Exception as e:
+        logger.error(f"Failed to initialize the model: {e}")
+        raise e  # Prevents the server from starting if initialization fails
 
-    if not student.data:
-        raise HTTPException(status_code=404, detail="Student not found")
-
-    # anyway, we try to query the table of groups, and their classes and subjects
-    groups = (supabase
-                .table("groups")
-                .select("*, course(*), group_members!group_members_group_id_fkey(*, profile:profiles!group_members_profile_id_fkey(*), student:students!group_members_student_id_fkey(*))")
-                .eq("deleted", False)
-                .neq("name", "")
-                .execute())
-
-    if not groups.data:
-        raise HTTPException(status_code=404, detail="Groups not found")
-
-    # filter the groups that the student is already a member of
-    groups.data = [group for group in groups.data if not any(member["student"]["profile_id"] == profile_id for member in group["group_members"])]
-
-    # TODO: implement the CBF algorithm
-
-    # anyway let's do a basic recommendation for now
-    # a group has these crucial infos: academic_year_id, year_level, avatar_url, student_no, course
-    # the ranking will be based on the similarity of the academic_year_id, year_level, and course
-    # to the current student / profile we're requesting this recommendation for     
-
-    recommendations = []
-    for group in groups.data:
-        score = 0
-        if group["academic_year_id"] == student.data["academic_year_id"]:
-            score += 1
-        if group["semester"]:
-                score += 2
-        if group["course"]:
-            if group["course"] == student.data["course"]:
-                score += 3
-        if group["description"]:
-            score += 1
-        if group["avatar_url"]:
-            score += 1
-
-        recommendations.append({
-            "group": group,
-            "score": score
-        })
-
-        # pprint(recommendations, indent=4)
-
-    # Sort recommendations by score in descending order
-    recommendations.sort(key=lambda x: x["score"], reverse=True)
-
-    # Extract the group data from the recommendations
-    recommendations = [recommendation['group'] for recommendation in recommendations]
-
-    return {
-        "groups": recommendations
-    }
+@router.get("/sid/{student_id}", 
+    response_model=GroupIDsResponse, 
+    description="Get group recommendations for a student", 
+    name="Get group recommendations for a student")
+async def get_group_recommendations_for_student(
+    student_id: int,
+    top_k: int = Query(10, description="Number of recommendations to return")
+):
+    try:
+        # Use the global recommender instance
+        recommendations = recommender.recommend_groups_for_student(student_id, top_k)
+        if not recommendations or len(recommendations) == 0:
+            raise HTTPException(status_code=404, detail="No recommendations found.")
+        # Find the raw group data from the database
+        raw_groups = recommender.get_group_chats_by_ids(recommendations)
+        
+        return GroupIDsResponse(student_id=student_id, group_ids=recommendations, groups=raw_groups)
+    except Exception as e:
+        logger.error(f"Error during recommendation: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
