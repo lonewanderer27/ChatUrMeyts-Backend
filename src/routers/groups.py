@@ -1,6 +1,9 @@
 import os
 from fastapi import APIRouter, HTTPException, Query
-from ..supabase import supabase
+from ..supabase import (
+    supabase,
+    save_recommendation
+)
 from pprint import pprint
 from typing import List, Any
 from pydantic import BaseModel
@@ -48,13 +51,19 @@ async def startup_event():
     name="Get group recommendations for a student")
 async def get_group_recommendations_for_student(
     student_id: int,
-    top_k: int = Query(10, description="Number of recommendations to return")
+    top_k: int = Query(10, description="Number of recommendations to return"),
+    save_to_db: bool = Query(True, description="Save the recommendations to the database")
 ):
     try:
         # Use the global recommender instance
         recommendations = recommender.recommend_groups_for_student(student_id, top_k)
         if not recommendations or len(recommendations) == 0:
             raise HTTPException(status_code=404, detail="No recommendations found.")
+
+        # Save the recommendations to the database
+        if save_to_db:
+            save_recommendation(student_id, recommendations)
+
         # Find the raw group data from the database
         raw_groups = recommender.get_group_chats_by_ids(recommendations)
         

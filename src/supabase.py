@@ -1,4 +1,5 @@
 from supabase import create_client, Client
+from typing import List
 import logging
 from dotenv import load_dotenv
 import os
@@ -65,4 +66,26 @@ def get_group_metadata():
         raise Exception(f"Error fetching group metadata: {error.message}")
     
     logger.info("Successfully fetched group metadata.")
+    return response.data
+
+def save_recommendation(student_id: int, group_ids: List[int]):
+    """
+    Save the group id recommendations for a student
+    """
+
+    logger.info(f"Saving recommendation for student_id: {student_id}")
+    logger.info(f"Group IDs: {group_ids}")
+    response = (
+        supabase.table("student_recommend_groups")
+        .insert({"student_id": student_id, "group_ids": group_ids})
+        .execute()
+    )
+
+    # Safely access the 'error' attribute
+    error = getattr(response, 'error', None)
+    if error:
+        logger.error(f"Error saving recommendation: {error.message}")
+        raise Exception(f"Error saving recommendation: {error.message}")
+    
+    logger.info("Successfully saved recommendation.")
     return response.data
