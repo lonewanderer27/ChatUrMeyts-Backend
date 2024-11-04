@@ -174,6 +174,14 @@ class GroupRecommender:
         self.compute_similarities()
         self.knn_model()
         logger.info("GroupRecommender initialized successfully.")
+    
+    def refresh_data(self):
+        logger.info("Refreshing data...")
+        self.load_data()
+        self.prepare_interaction_matrix()
+        self.compute_similarities()
+        self.knn_model()
+        logger.info("Data refreshed successfully.")
 
     def get_group_members_by_group_id(self, group_id: int):
         """

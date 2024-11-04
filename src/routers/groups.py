@@ -32,6 +32,9 @@ class GroupIDsResponse(BaseModel):
     group_ids: List[int] = []
     groups: List[Group] = []
 
+class RefreshResponse(BaseModel):
+    message: str
+
 @router.on_event("startup")
 async def startup_event():
     global recommender  # Use the global keyword to modify the global variable
@@ -45,6 +48,16 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Failed to initialize the model: {e}")
         raise e  # Prevents the server from starting if initialization fails
+
+@router.post("/refresh", description="Refresh the group recommender model", name="Refresh the group recommender model")
+async def refresh_group_recommender():
+    global recommender
+    try:
+        recommender.refresh_data()
+        return RefreshResponse(message="Model refreshed successfully.")
+    except Exception as e:
+        logger.error(f"Failed to refresh the model: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/sid/{student_id}", 
     response_model=GroupIDsResponse, 
