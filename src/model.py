@@ -10,6 +10,7 @@ from .supabase import (
     get_group_members,
     get_group_metadata
 )
+from typing import Dict, Any, List
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO)
@@ -174,7 +175,36 @@ class GroupRecommender:
         self.knn_model()
         logger.info("GroupRecommender initialized successfully.")
 
-    def get_group_chats_by_ids(self, group_ids):
+    def get_group_members_by_group_id(self, group_id: int):
+        """
+        Fetch the group members for the given group ID.
+        :param group_id: Group ID to fetch members for.
+        :return: List of group members dictionaries.
+        """
+        logger.info(f"Fetching group members for group ID: {group_id}")
+
+        if not isinstance(group_id, int):
+            raise ValueError("group_id must be an integer.")
+
+        # Filter group members based on the provided group ID
+        # filtered_members = self.group_members[self.group_members['group_id'] == group_id]
+
+        # Filter group members and related student data based on the provided group ID
+        filtered_members = self.group_members[self.group_members['group_id'] == group_id]
+        filtered_members = filtered_members.merge(self.students, left_on='student_id', right_on='id')
+
+        if filtered_members.empty:
+            logger.info(f"No member data found for the provided group ID: {group_id}")
+            return []
+
+        # Convert DataFrame rows to dictionaries
+        group_members_data = filtered_members.to_dict(orient='records')
+
+        logger.info(f"Fetched {len(group_members_data)} group member records.")
+
+        return group_members_data
+
+    def get_group_chats_by_ids(self, group_ids: List[int]):
         """
         Fetch raw group chat data for the given group IDs.
         :param group_ids: List of group IDs to fetch chats for.

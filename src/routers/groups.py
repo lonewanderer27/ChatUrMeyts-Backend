@@ -25,6 +25,7 @@ class Group(BaseModel):
     group_subjects: List[str] = []
     year_level: List[int]
     block: str
+    group_members: List[Any] = []
 
 class GroupIDsResponse(BaseModel):
     student_id: int
@@ -66,6 +67,13 @@ async def get_group_recommendations_for_student(
 
         # Find the raw group data from the database
         raw_groups = recommender.get_group_chats_by_ids(recommendations)
+
+        # Find the raw group members data from the database
+        for group in raw_groups:
+            group_members = recommender.get_group_members_by_group_id(group["group_id"])
+
+            # Add the group members to the group data
+            group["group_members"] = group_members
         
         return GroupIDsResponse(student_id=student_id, group_ids=recommendations, groups=raw_groups)
     except Exception as e:
