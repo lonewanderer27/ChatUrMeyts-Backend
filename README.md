@@ -12,8 +12,8 @@ This is the API for Chat-Ur-Meyts, built using FastAPI.
 1. Clone the repository:
 
     ```sh
-    git clone https://github.com/yourusername/ChatUrMeyts.git
-    cd ChatUrMeyts
+    git clone https://github.com/lonewanderer27/ChatUrMeyts-Backend
+    cd ChatUrMeyts-Backend
     ```
 
 2. Create and activate a virtual environment:
