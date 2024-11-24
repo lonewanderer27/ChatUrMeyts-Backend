@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 # Initialize the global recommender to None
 recommender = None  # Global variable
 
-router = APIRouter(prefix="/groups")
+router = APIRouter(prefix="/groups", tags=["Recommendation"])
 
 class Group(BaseModel):
     group_id: int

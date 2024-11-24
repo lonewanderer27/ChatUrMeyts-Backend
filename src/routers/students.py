@@ -7,7 +7,7 @@ from pprint import pprint
 class StudentsResponse(BaseModel):
     students: List[Dict[str, Any]]
 
-router = APIRouter(prefix="/students")
+router = APIRouter(prefix="/students", tags=["Recommendation"])
 
 @router.get("/pid/{profile_id}", description="Get student recommendations")
 async def get_student_recommendations(profile_id: str):

@@ -25,13 +25,13 @@ chaturmates.add_middleware(
     allow_headers=["*"]
 )
 
-chaturmates.include_router(hello_router)
 chaturmates.include_router(groups_router)
 chaturmates.include_router(students_router)
+chaturmates.include_router(hello_router)
 
-@chaturmates.get("/")
+@chaturmates.get("/", tags=["Root"])
 async def root():
     return {"message": "Hello Klasmeyt!"}
 
 if __name__ == "__main__":
-    uvicorn.run(chaturmates, host="0.0.0.0", port=int(os.environ.get("PORT", 2428)))
+    uvicorn.run(chaturmates, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))

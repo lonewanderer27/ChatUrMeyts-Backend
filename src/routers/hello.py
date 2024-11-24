@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/hello")
+router = APIRouter(prefix="/hello", tags=["Root"])
 
 
 @router.get("/", description="Say hello to the world")
