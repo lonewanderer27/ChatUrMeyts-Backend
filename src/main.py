@@ -27,7 +27,7 @@ chaturmates.add_middleware(
 )
 
 chaturmates.include_router(groups_router)
-chaturmates.include_router()
+chaturmates.include_router(image_router)
 chaturmates.include_router(students_router)
 chaturmates.include_router(hello_router)
 
