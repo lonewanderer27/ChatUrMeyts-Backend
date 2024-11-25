@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.routers.hello import router as hello_router
 from src.routers.groups import router as groups_router
 from src.routers.students import router as students_router
+from src.routers.image import router as image_router
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO)
@@ -26,6 +27,7 @@ chaturmates.add_middleware(
 )
 
 chaturmates.include_router(groups_router)
+chaturmates.include_router()
 chaturmates.include_router(students_router)
 chaturmates.include_router(hello_router)
 
